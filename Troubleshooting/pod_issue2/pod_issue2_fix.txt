@@ -1,0 +1,1 @@
+change storageclass in pvc and image name in pod
