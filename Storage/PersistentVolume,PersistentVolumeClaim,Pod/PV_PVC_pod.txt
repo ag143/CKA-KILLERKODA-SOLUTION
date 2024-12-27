@@ -1,0 +1,57 @@
+controlplane $ ls
+filesystem  pod.yaml  pv.yaml  pvc.yaml  sc.yaml  snap
+controlplane $ cat sc.yaml 
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+controlplane $ cat pv.yaml 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: fast-pv-cka
+spec:
+  capacity:
+    storage: 50Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: fast-storage
+  hostPath:
+    path: /tmp/fast-data
+controlplane $ cat pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fast-pvc-cka
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 30Mi
+  storageClassName: fast-storage
+  volumeName: fast-pv-cka
+controlplane $ cat pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fast-pod-cka
+spec:
+  containers:
+    - name: nginx
+      image: nginx:latest
+      volumeMounts:
+      - mountPath: "/app/data"
+        name: test
+  volumes:
+    - name: test
+      persistentVolumeClaim:
+        claimName: fast-pvc-cka
+controlplane $ 
